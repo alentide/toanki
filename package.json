@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "mongoose": "^5.9.23",
     "nedb": "^1.8.0",
     "node-watch": "^0.6.3",
     "yargs": "^15.3.1"

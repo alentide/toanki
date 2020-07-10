@@ -1,19 +1,5 @@
-// function splitUsernameFromLine(line){
-//     return line.trim().split('用户名：').pop().trim()
-// }
-// function  splitNoteNameFromLine(line){
-//     return line.trim().split('牌组类：').pop().trim()
-// }
-
-// module.exports = {splitUsernameFromLine}
-// // export {splitUsernameFromLine}
-
 const getFileContentByLine = require("../file/read");
 
-// const getUser = require("./getUser");
-// const getStep = require("./getStep");
-// const getDetail = require("./getDetail");
-// const getTag = require("./getTag");
 const path = require("path");
 const copyImg = require("../file/copyImg");
 const getImgCon = require("./getImgCon");
@@ -39,26 +25,27 @@ const meta = {
 
 function toImgCon(card) {
     const newSteps = card.step.map((step) => {
-        
-        return step.replace(/!\[.*?\]\(.+?\)/g,(str)=>getImgTagCon(str,card) );
+        return step.replace(/!\[.*?\]\(.+?\)/g, (str) =>
+            getImgTagCon(str, card)
+        );
     });
-    card.step.length = 0
-    card.step.push(...newSteps)
+    card.step.length = 0;
+    card.step.push(...newSteps);
 
     const newDetails = card.detail.map((step) => {
-        
-        return step.replace(/!\[.*?\]\(.+?\)/g,(str)=>getImgTagCon(str,card) );
+        return step.replace(/!\[.*?\]\(.+?\)/g, (str) =>
+            getImgTagCon(str, card)
+        );
     });
 
-    card.detail.length = 0
-    card.detail.push(...newDetails)
-    
+    card.detail.length = 0;
+    card.detail.push(...newDetails);
 }
 
-function strToImgCon(step,card){
-    return step.replace(/!\[.*?\]\(.+?\)/g,(str)=>getImgTagCon(str,card) );
+function strToImgCon(step, card) {
+    return step.replace(/!\[.*?\]\(.+?\)/g, (str) => getImgTagCon(str, card));
 }
-function getImgTagCon(str,card) {
+function getImgTagCon(str, card) {
     const imgPath = str.match(/\](.+)/)[0].slice(2, -1);
     const imgName = path.basename(imgPath);
     let imgDir = [path.dirname(imgPath)]; //变为数组是为了方便运算
@@ -261,7 +248,7 @@ module.exports = async function (filesList, armDB, cb) {
 
     cards.forEach((card, i) => {
         //将里面的图片换成标签
-        toImgCon(card)
+        toImgCon(card);
         // let selfFront
         // if(card.modelName==='填空题-toanki'){
         //     selfFront = card.step.map((step) => getNewLine(step,'counter',i)).join("");
@@ -305,7 +292,9 @@ module.exports = async function (filesList, armDB, cb) {
         } else {
             //如果这个卡片有子卡片，那么他应当是一个填空题，所有的背面放到正面，并以填空题的方式
             const childrenStepStr = childrenStep
-                .map((detail, i) => getNewLine(strToImgCon(detail,card), "counter", i + 1))
+                .map((detail, i) =>
+                    getNewLine(strToImgCon(detail, card), "counter", i + 1)
+                )
                 .join("");
             // card.front+=selfBack
             card.front += childrenStepStr;
@@ -337,12 +326,20 @@ module.exports = async function (filesList, armDB, cb) {
     const { promisify } = require("util");
 
     //引入数据库
-    const db = require("../db/index")("anki");
+    // const db = require("../db/index")("anki");
 
-    const dbFindOneSync = promisify(db.findOne).bind(db);
-    const dbInsertSync = promisify(db.insert).bind(db);
-    const dbUpdate = promisify(db.update).bind(db);
-    const dbRemove = promisify(db.remove).bind(db);
+    // const dbFindOneSync = promisify(db.findOne).bind(db);
+    // const dbInsertSync = promisify(db.insert).bind(db);
+    // const dbUpdate = promisify(db.update).bind(db);
+    // const dbRemove = promisify(db.remove).bind(db);
+
+    //使用mongodb
+    const {
+        dbFindOneSync,
+        dbInsertSync,
+        dbUpdate,
+        dbRemove,
+    } = require("../api/db");
 
     const http = require("../http/api");
 

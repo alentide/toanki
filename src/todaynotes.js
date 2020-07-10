@@ -138,6 +138,9 @@ function main({openNote}) {
     const watchStore = require("./file/watchStore");
     const card = require("./card/index");
 
+    //连接数据库
+    require('./plugins/mongoose')()
+
     watchStore(notesPath, fileWatchContainer(card));
 
     //打开anki
