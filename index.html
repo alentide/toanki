@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <style>
+            .parent {
+                counter-reset: step 0;
+            }
+            .counter {
+            }
+            .counter::before {
+                counter-increment: step 1;
+                content: "步骤" counter(step) "：";
+            }
+            .counter{
+                /* display: none; */
+                opacity: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="parent">
+            {{cloze:正面}}
+        </div>
+
+        counter的使用
+        <div></div>
+        <div class="counter">{{c1::初始化counter}}</div>
+        <div class="counter">{{c2::调用counter}}</div>
+        <div class="counter"><span class="cloze"></span>{{c3::123}}</span></div>
+        <div class="counter">{{c4::56}}</div>
+        <div></div>
+        <script>
+            var cloze = document.querySelector('.cloze')
+            var clozeParent = cloze.parentElement
+            for(var i=0;i<clozeParent.parentElement.children.length;i++){
+                clozeParent.parentElement.children[i].style.opacity=0
+            }
+            clozeParent.previousElementSibling.style.opacity=1
+            clozeParent.style.opacity = 1
+            clozeParent.nextElementSibling.style.opacity=1
+        </script>
+    </body>
+</html>

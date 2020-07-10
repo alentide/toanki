@@ -1,0 +1,23 @@
+{
+  "name": "toanki",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^25.3.0"
+  },
+  "bin": {
+    "toanki": "./src/main.js",
+    "todaynotes": "./src/todaynotes.js",
+    "todayhtml": "./src/todayHTML.js"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "nedb": "^1.8.0",
+    "node-watch": "^0.6.3",
+    "yargs": "^15.3.1"
+  }
+}
