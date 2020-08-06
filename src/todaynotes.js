@@ -148,7 +148,8 @@ function main({openNote}) {
 
     //打开目录
     const learningDirPath = JSON.parse(fs.readFileSync(path.resolve(notesPath,'config.json'),'utf-8')).learningDir
-    openFile(learningDirPath)
+    console.log('learningDirPath',learningDirPath)
+    // openFile(learningDirPath)
 }
 
 //仅打开配置文件

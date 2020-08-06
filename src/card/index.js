@@ -3,9 +3,9 @@ const getFileContentByLine = require("../file/read");
 const path = require("path");
 const copyImg = require("../file/copyImg");
 const getImgCon = require("./getImgCon");
-
+const {filePath,user} = require('../../config')
 const meta = {
-    user: "fractium",
+    user,
     tags: [],
     level2: "",
     level3: "",
@@ -15,8 +15,8 @@ const meta = {
     deleted: false,
     get ankiPath() {
         return (
-            "C:/Users/30716/AppData/Roaming/Anki2/" +
-            this.user +
+            filePath+
+            user +
             "/collection.media"
         );
     },
@@ -390,7 +390,6 @@ module.exports = async function (filesList, armDB, cb) {
         cb && cb(false);
         return;
     }
-
     //凡是本地没有的，就应该发往anki，同时本地也要存储,内存里也要保存
     //暂时只是标注是否需要存储
     // notes.forEach(async (note) => {
