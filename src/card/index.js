@@ -3,9 +3,9 @@ const getFileContentByLine = require("../file/read");
 const path = require("path");
 const copyImg = require("../file/copyImg");
 const getImgCon = require("./getImgCon");
-
+const { filePath, user } = require('../../config')
 const meta = {
-    user: "fractium",
+    user,
     tags: [],
     level2: "",
     level3: "",
@@ -15,8 +15,8 @@ const meta = {
     deleted: false,
     get ankiPath() {
         return (
-            "C:/Users/30716/AppData/Roaming/Anki2/" +
-            this.user +
+            filePath + '/' +
+            user +
             "/collection.media"
         );
     },
@@ -291,11 +291,25 @@ module.exports = async function (filesList, armDB, cb) {
             }
         } else {
             //如果这个卡片有子卡片，那么他应当是一个填空题，所有的背面放到正面，并以填空题的方式
+
+            //TODO:这里加个功能 如果问题以@开头，那他就不是填空题的一部分。主要是detail里只有问题，没有索引，所以这么处理。
+
+            let i = 0
             const childrenStepStr = childrenStep
-                .map((detail, i) =>
-                    getNewLine(strToImgCon(detail, card), "counter", i + 1)
-                )
+                .map((detail) => {
+                    if (detail.startsWith('@')) {
+                        return null
+                    }
+                    return getNewLine(strToImgCon(detail, card), "counter", ++i)
+                }).filter(m => m)
                 .join("");
+
+
+            // const childrenStepStr = childrenStep
+            //     .map((detail, i) =>
+            //         getNewLine(strToImgCon(detail, card), "counter", i + 1)
+            //     )
+            //     .join("");
             // card.front+=selfBack
             card.front += childrenStepStr;
 
@@ -308,7 +322,6 @@ module.exports = async function (filesList, armDB, cb) {
         card.filePath = meta.filePath;
     });
 
-    // return
     const hiddenCode = function (code) {
         return `<div style="display:none" >${code}`;
     };
@@ -390,7 +403,6 @@ module.exports = async function (filesList, armDB, cb) {
         cb && cb(false);
         return;
     }
-
     //凡是本地没有的，就应该发往anki，同时本地也要存储,内存里也要保存
     //暂时只是标注是否需要存储
     // notes.forEach(async (note) => {
