@@ -4,6 +4,8 @@ const path = require("path");
 const copyImg = require("../file/copyImg");
 const getImgCon = require("./getImgCon");
 const { filePath, user } = require('../../config')
+const os = require('os')
+const tiankong = 'A03TOANKI填空题'
 const meta = {
     user,
     tags: [],
@@ -22,6 +24,7 @@ const meta = {
     },
     deleteMany: false,
 };
+
 
 function toImgCon(card) {
     const newSteps = card.step.map((step) => {
@@ -65,6 +68,7 @@ module.exports = async function (filesList, armDB, cb) {
     function Card({ index, deckName, modelName, tags, filePath, deleted }) {
         this.step = [];
         this.detail = [];
+        this.textRelated = [];
         this.index = index;
         this.deckName = deckName;
         this.modelName = modelName;
@@ -75,8 +79,11 @@ module.exports = async function (filesList, armDB, cb) {
 
     filesList.forEach((file) => {
         const fileContentByLine = getFileContentByLine(file);
-
-        fileContentByLine.forEach((line) => {
+        // console.log('file',file);
+        fileContentByLine.forEach((line,lineNum) => {
+            // const realLineNum = lineNum*2+1
+            const realLineNum = lineNum
+            // console.log('realLineNum,line',realLineNum,line);
             if (line.startsWith("牌组类：")) {
                 meta.deckName = line.split("牌组类：")[1];
             } else if (line.startsWith("用户：")) {
@@ -125,10 +132,25 @@ module.exports = async function (filesList, armDB, cb) {
             } else if (line.startsWith("## s1：")) {
                 const card = new Card(meta);
                 card.level = 2;
+                
+                //如果是填空题
+                const regex = /{{c([0-9]+?):(.+?)(}{2})/g;
+                const matches = line.match(regex)
+                if(matches?.length){
+                    card.modelName = tiankong
+                }
+
                 card.step.push(line.split("## s1：")[1]);
+
+                //如果不是填空题
+                
+                
+                
                 cards.push(card);
                 inputLocation = cards[cards.length - 1].step;
                 meta.level2 = cards[cards.length - 1];
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("### s2：")) {
                 const card = new Card(meta);
                 card.level = 3;
@@ -138,6 +160,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level3 = cards[cards.length - 1];
                 card.parentIndex = meta.level2.index;
                 card.parentCard = meta.level2;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("#### s3：")) {
                 const card = new Card(meta);
                 card.level = 4;
@@ -147,6 +171,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level4 = cards[cards.length - 1];
                 card.parentIndex = meta.level3.index;
                 card.parentCard = meta.level3;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("##### s4：")) {
                 const card = new Card(meta);
                 card.level = 5;
@@ -156,6 +182,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level5 = cards[cards.length - 1];
                 card.parentIndex = meta.level4.index;
                 card.parentCard = meta.level4;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("###### s5：")) {
                 const card = new Card(meta);
                 card.level = 6;
@@ -165,6 +193,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level6 = cards[cards.length - 1];
                 card.parentIndex = meta.level5.index;
                 card.parentCard = meta.level5;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("s6： ")) {
                 const card = new Card(meta);
                 card.level = 7;
@@ -174,6 +204,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level7 = cards[cards.length - 1];
                 card.parentIndex = meta.level6.index;
                 card.parentCard = meta.level6;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("s7： ")) {
                 const card = new Card(meta);
                 card.level = 8;
@@ -183,6 +215,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level8 = cards[cards.length - 1];
                 card.parentIndex = meta.level7.index;
                 card.parentCard = meta.level7;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("s8： ")) {
                 const card = new Card(meta);
                 card.level = 9;
@@ -192,6 +226,8 @@ module.exports = async function (filesList, armDB, cb) {
                 meta.level9 = cards[cards.length - 1];
                 card.parentIndex = meta.level8.index;
                 card.parentCard = meta.level8;
+                card.realLineNum = realLineNum
+                card.filePath = file
             } else if (line.startsWith("答：")) {
                 inputLocation = cards[cards.length - 1].detail;
 
@@ -212,11 +248,17 @@ module.exports = async function (filesList, armDB, cb) {
                 copyImg(imgName, imgDir.join("/"), meta.ankiPath);
                 let content = `<img src="anki-paste${imgName}" >`;
                 inputLocation.push(content);
-            } else if (line.startsWith("注释：")) {
+            }else if (line.startsWith("文本链接：")){
+                inputLocation = cards[cards.length - 1].textRelated;
+                inputLocation.push(line.split("文本链接：")[1]);
+            }
+             else if (line.startsWith("注释：")) {
                 inputLocation = null;
             } else {
                 inputLocation && inputLocation.push(line);
             }
+
+            
         });
     });
 
@@ -285,8 +327,10 @@ module.exports = async function (filesList, armDB, cb) {
             card.modelName = tempModelName;
             // console.log(card)
 
-            //如果没有子卡片，且自己的内容为空， 这张卡片就不存在
-            if (!selfBack) {
+            //如果没有子卡片，且自己的内容为空， 这张卡片就不存在,除非他是单独一张填空题
+
+            if (!selfBack && card.modelName!==tiankong) {
+                console.log('卡片被设置为删除card.modelName',card.modelName);
                 card.deleted = true;
             }
         } else {
@@ -329,8 +373,10 @@ module.exports = async function (filesList, armDB, cb) {
         return {
             ...card,
             fields: {
-                正面: card.front + hiddenCode(card.index), //加入独特的字符串来允许卡片重复
-                背面: card.back,
+                问题: card.front + hiddenCode(card.index), //加入独特的字符串来允许卡片重复
+                答案: card.back,
+                链接: `<a href="vscode://file/${card.filePath}:${card.realLineNum}">vscode</a>`,
+                文本关联: card.textRelated.join(os.EOL),
             },
             parentCard: "",
         };
@@ -415,7 +461,8 @@ module.exports = async function (filesList, armDB, cb) {
             if (
                 note.front !== doc.front ||
                 note.back !== doc.back ||
-                !isArrayEqual(note.tags, doc.tags)
+                !isArrayEqual(note.tags, doc.tags) ||
+                note.realLineNum !== doc.realLineNum
             ) {
                 note.needUpdate = true;
                 note.id = parseInt(doc.id);
@@ -440,8 +487,10 @@ module.exports = async function (filesList, armDB, cb) {
     }
     // console.log(notes[0]);
     //需要新添加的卡片
+    
     const needInputNotes = notes.filter((note) => note.needInput === true);
     if (needInputNotes.length > 0) {
+        // console.log('needInputNotes',needInputNotes);
         const { data } = await http.addNotes(needInputNotes);
         // const result = await http.addNotes(needInputNotes);
         // console.log(result)

@@ -107,7 +107,7 @@ function main({openNote}) {
         // fs.openSync(getConfigPath(),'rs+');
         openFile(getConfigPath());
         console.log(
-            "请设置noteTemplates数组属性，每个元素包含fileName(没有扩展名),cardType（卡片类）,noteType（笔记类）,tag（标签）"
+            "请设置noteTemplates数组属性，每个元素包含fileName(没有扩展名),cardType（牌组名）,noteType（笔记类）,tag（标签）"
         );
         return;
     }

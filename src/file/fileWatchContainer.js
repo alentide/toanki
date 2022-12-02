@@ -52,7 +52,7 @@ function fileWatchContainer(makeCard) {
                     );
                 });
             }
-        }, 5000);
+        }, 3000);
     }
 
     return (filename) => {
